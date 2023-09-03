@@ -11,11 +11,11 @@ Credit: [kishimisu](https://www.youtube.com/@kishimisu) for their video [An Intr
 Getting Started
 ---
 
-1. Run [`./build.sh`](./build.sh) to install all dependencies and build the project.
-    - Run [`./build.sh -i`](./build.sh) to re-install dependencies.
-    - Run [`./build.sh -w`](./build.sh) to run in **watch mode**, which continuously re-compiles your code when you make changes.
+1. Run [`⚙️ build.sh`](./build.sh) to install all dependencies and build the project.
+    - Appending `-i` or `--install` will re-install dependencies.
+    - Appending `-w` or `--watch` enables watch mode for live re-compilation.
 
-2. Run [`./build/Shaders`](./build/Shaders) to run the project.
+2. Run `./build/Shaders` to run the project.
 
 License
 ---
