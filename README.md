@@ -15,7 +15,8 @@ Getting Started
     - Appending `-i` or `--install` will re-install dependencies.
     - Appending `-w` or `--watch` enables watch mode for live re-compilation.
 
-2. Run `./build/Shaders` to run the project.
+2. Run `./build/Shaders` to see something cool.
+   - Press `Enter` to hot-reload the [fragment shader](./shaders/fragment.glsl).
 
 License
 ---

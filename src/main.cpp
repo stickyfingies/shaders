@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <limits>
 
 static constexpr const unsigned short GL_MAJOR = 4;
 static constexpr const unsigned short GL_MINOR = 3;
@@ -11,15 +12,16 @@ static constexpr const unsigned short GL_MINOR = 3;
 static constexpr const unsigned short WIN_WIDTH = 800;
 static constexpr const unsigned short WIN_HEIGHT = 600;
 
-float vertices[] = {
-     1.f,  1.f, 0.0f,  // top right
-     1.f, -1.f, 0.0f,  // bottom right
-    -1.f, -1.f, 0.0f,  // bottom left
-    -1.f,  1.f, 0.0f   // top left 
+static constexpr const float vertices[] = {
+    1.f, 1.f, 0.0f,   // top right
+    1.f, -1.f, 0.0f,  // bottom right
+    -1.f, -1.f, 0.0f, // bottom left
+    -1.f, 1.f, 0.0f   // top left
 };
-unsigned int indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
+static constexpr const unsigned int indices[] = {
+    // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
 };
 
 using BufferLayout = unsigned int;
@@ -31,6 +33,7 @@ void on_framebuffer_resize(GLFWwindow *window, int width, int height);
 void poll_input(GLFWwindow *window);
 Shader create_shader(const char *fileName, unsigned int shaderType);
 void query_gl_stats();
+Program create_program();
 
 int main()
 {
@@ -60,6 +63,8 @@ int main()
         return 1;
     }
 
+    cout << "\033[1;34mPress [Enter] to reload shader.\033[0m" << endl;
+
     // OpenGL
 
     glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
@@ -80,40 +85,36 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    const Shader vertexShader = create_shader("./shaders/vertex.glsl", GL_VERTEX_SHADER);
-    const Shader fragmentShader = create_shader("./shaders/fragment.glsl", GL_FRAGMENT_SHADER);
-    const Program shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    int success;
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        char infoLog[512];
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        cerr << infoLog << endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    glBindVertexArray(VAO);
+    Program shaderProgram = create_program();
     glUseProgram(shaderProgram);
 
     // Loop
 
     while (!glfwWindowShouldClose(window))
     {
-        poll_input(window);
+        // Input
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            glfwSetWindowShouldClose(window, true);
+        }
+        if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+        {
+            cout << "\033[1;34mReloading shader.\033[0m" << endl;
+            const Program oldProgram = shaderProgram;
+            shaderProgram = create_program();
+            glUseProgram(shaderProgram);
+            glDeleteProgram(oldProgram);
+        }
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        // Variables
         int w, h;
         glfwGetWindowSize(window, &w, &h);
         glUniform1f(0, glfwGetTime());
         glUniform2i(1, w, h);
 
+        // Draw
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwPollEvents();
@@ -128,7 +129,40 @@ int main()
     return 0;
 }
 
-void query_gl_stats() {
+Program create_program()
+{
+    // Shader
+    const Shader vertexShader = create_shader("./shaders/vertex.glsl", GL_VERTEX_SHADER);
+    const Shader fragmentShader = create_shader("./shaders/fragment.glsl", GL_FRAGMENT_SHADER);
+    if (vertexShader == 0 || fragmentShader == 0)
+    {
+        return 0; // the shaders didn't compile.
+    }
+
+    // Link
+    const Program shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    
+    // Failure
+    int success;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cerr << "\033[0;31m" << infoLog << "\033[0m" << std::endl;
+        return 0;
+    }
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+    return shaderProgram;
+}
+
+void query_gl_stats()
+{
     using namespace std;
 
     cout << "OpenGL " << GL_MAJOR << "." << GL_MINOR << endl;
@@ -159,18 +193,11 @@ Shader create_shader(const char *fileName, unsigned int shaderType)
     {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        cerr << infoLog << endl;
+        cerr << "\033[1;31m" << fileName << "\033[0m " << infoLog << endl;
+        return 0;
     }
 
     return shader;
-}
-
-void poll_input(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
 }
 
 void on_framebuffer_resize(GLFWwindow *window, int width, int height)
