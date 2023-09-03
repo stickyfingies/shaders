@@ -2,9 +2,9 @@
 
 ![Screenshot](screenshot.png "Screenshot")
 
-Credit: [Joey de Vries](https://github.com/JoeyDeVries) for their awesome tutorial [LearnOpengl.com](https://learnopengl.com/Getting-started/Hello-Window)
+> **Credit**: [Joey de Vries](https://github.com/JoeyDeVries) for their awesome tutorial [LearnOpengl.com](https://learnopengl.com/Getting-started/Hello-Window)
 
-Credit: [kishimisu](https://www.youtube.com/@kishimisu) for their video [An Introduction to Shader Art Coding](https://www.youtube.com/watch?v=f4s1h2YETNY)
+> **Credit**: [kishimisu](https://www.youtube.com/@kishimisu) for their video [An Introduction to Shader Art Coding](https://www.youtube.com/watch?v=f4s1h2YETNY)
 
 ---
 
